@@ -194,13 +194,39 @@ export function PlayHud(props: {
           </p>
         ) : (
           <>
-            <Zone title={isZh ? "我面对的" : "Around me"} empty={view.locations.length + view.actors.length + view.meters.length === 0} emptyText={isZh ? "暂无" : "—"}>
+            <Zone
+              title={isZh ? "我面对的" : "Around me"}
+              empty={view.locations.length + view.actors.length === 0}
+              emptyText={isZh ? "周围还没有出现地点或人物" : "No places or people around yet"}
+            >
               {view.locations.map((loc) => (
                 <Row key={loc.id} glyph="📍" label={loc.label} note={loc.status} />
               ))}
               {view.actors.map(({ entity, relation }) => (
                 <Row key={entity.id} glyph="👤" label={entity.label} note={relation} />
               ))}
+            </Zone>
+
+            <Zone
+              title={isZh ? "我握有的" : "What I hold"}
+              empty={view.holdings.length === 0}
+              emptyText={isZh ? "还没有获得物品、证据或线索" : "No items, evidence, or clues yet"}
+            >
+              {view.holdings.map((item) => (
+                <Row
+                  key={item.id}
+                  glyph={HOLDING_GLYPH[item.type] ?? "•"}
+                  label={item.label}
+                  note={item.status}
+                />
+              ))}
+            </Zone>
+
+            <Zone
+              title={isZh ? "状态" : "State"}
+              empty={view.meters.length === 0}
+              emptyText={isZh ? "还没有出现数值（压力、资源、关系、倒计时等）" : "No meters yet (pressure, resources, relations, timers…)"}
+            >
               {view.meters.map(({ slot, cause }) => (
                 <Row
                   key={slot.id}
@@ -208,17 +234,6 @@ export function PlayHud(props: {
                   label={slot.label}
                   value={formatValue(slot.value)}
                   note={cause}
-                />
-              ))}
-            </Zone>
-
-            <Zone title={isZh ? "我握有的" : "What I hold"} empty={view.holdings.length === 0} emptyText={isZh ? "暂无" : "—"}>
-              {view.holdings.map((item) => (
-                <Row
-                  key={item.id}
-                  glyph={HOLDING_GLYPH[item.type] ?? "•"}
-                  label={item.label}
-                  note={item.status}
                 />
               ))}
             </Zone>
@@ -241,11 +256,16 @@ function Zone(props: {
   readonly emptyText: string;
   readonly children: React.ReactNode;
 }) {
-  if (props.empty) return null;
+  // Always render the category so the player sees the structure ("what kinds of
+  // things can show up here"); content fills in as the story produces it.
   return (
     <section>
       <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">{props.title}</h3>
-      <div className="space-y-1.5">{props.children}</div>
+      {props.empty ? (
+        <p className="text-[11px] italic leading-5 text-muted-foreground/40">{props.emptyText}</p>
+      ) : (
+        <div className="space-y-1.5">{props.children}</div>
+      )}
     </section>
   );
 }
